@@ -1,0 +1,91 @@
+name: Build downloadable app
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android APK and web app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Package web app
+        run: zip -r cipher-studio-web.zip dist
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cipher-studio-android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload web app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cipher-studio-web
+          path: cipher-studio-web.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish public download on version tags
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cipher-studio-android-apk
+          path: downloads
+
+      - name: Download web app artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cipher-studio-web
+          path: downloads
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" downloads/app-debug.apk downloads/cipher-studio-web.zip --title "Cipher Studio $GITHUB_REF_NAME" --notes "Download the Android APK to install the app, or download the web ZIP to run it in a browser."
