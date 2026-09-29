@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { IonApp, IonContent, IonPage, IonButton, IonIcon, setupIonicReact } from '@ionic/react';
-import { lockClosedOutline, arrowForwardOutline, copyOutline, swapHorizontalOutline } from 'ionicons/icons';
+import { lockClosedOutline, keyOutline, arrowForwardOutline, copyOutline, swapHorizontalOutline } from 'ionicons/icons';
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
@@ -94,7 +94,7 @@ function App() {
     catch { setNotice('Copy is unavailable. Select and copy the result manually.'); }
   }
   return <IonApp><IonPage><IonContent><main className="shell">
-    <header><a className="brand" href="./"><span className="brand-icon"><IonIcon icon={lockClosedOutline} /></span>Cipher Studio</a><span className="badge">A little mystery. Made simple.</span></header>
+    <header><a className="brand" href="./"><span className="brand-icon" aria-hidden="true"><IonIcon className="brand-lock" icon={lockClosedOutline} /><IonIcon className="brand-key" icon={keyOutline} /></span>Cipher Studio</a><span className="badge">A little mystery. Made simple.</span></header>
     <section className="intro"><span className="eyebrow">YOUR MESSAGE, REIMAGINED</span><h1>Turn words into<br /><em>something secret.</em></h1><p>Explore the art of classic encryption.<br />Four ciphers. One simple workspace.</p></section>
     <div className="workspace"><section className="editor panel" aria-label="Cipher workspace">
       <div className="section-top"><h2>Let’s transform your text</h2><span className="step">01 — INPUT</span></div>
